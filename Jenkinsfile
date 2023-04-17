@@ -1,4 +1,9 @@
 pipeline {
+  environment {
+    registry = 'oloks101/flask_app'
+    registryCredentials = 'docker'
+    cluster_name = 'skillstorm'
+  }
   agent any
   stages {
     stage('Git') {
@@ -7,23 +12,20 @@ pipeline {
       }
     }
 
-    stage('Build') {
-      steps {
-        sh 'docker build -t oloks101/flask_app .'
+stage('Build Stage') {
+    steps {
+        script {
+            dockerImage = docker.build(registry)
+        }
       }
     }
 
-    stage('Docker Login') {
-      steps {
-        sh 'docker login -u oloks101 -p dckr_pat_vM9bUZtMTTRuLQ572KCAMw3mpWo'
-      }
+stage('Deploy Stage') {
+    steps {
+        script {
+          docker.withRegistry('', registryCredentials) {
+                dockerImage.push()  
+          }
+        }
     }
-
-    stage('Docker push') {
-      steps {
-        sh 'docker push oloks101/flask_app'
-      }
-    }
-
-  }
 }
